@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Ticket ' + ${ticket.ticket_id} + ' | Support CRM'">Ticket Detail</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    .navbar-custom {
+      background-color: #0f172a;
+      border-bottom: 1px solid #1e293b;
+    }
+    .card-surface {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    }
+    .badge-pill-custom {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .badge-open { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-in_progress { background-color: #fefce8; color: #a16207; border: 1px solid #fef08a; }
+    .badge-closed { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+    .timeline {
+      border-left: 2px solid #e2e8f0;
+      margin-left: 0.5rem;
+      padding-left: 1.25rem;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -1.7rem;
+      top: 0.35rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #0284c7;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 1px #cbd5e1;
+    }
+    .user-chip {
+      background-color: #f1f5f9;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3">
+  <div class="container">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/tickets">
+      <span class="bg-primary text-white p-2 rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+        <i class="bi bi-shield-check"></i>
+      </span>
+      <span>SupportDesk <span class="badge bg-secondary-subtle text-light-emphasis small fw-normal ms-1">CRM</span></span>
+    </a>
+    <a href="/tickets" class="btn btn-outline-light btn-sm px-3 rounded-pill">
+      <i class="bi bi-arrow-left me-1"></i> Dashboard
+    </a>
+  </div>
+</nav>
+
+<div class="container my-4 my-md-5">
+  <div class="row g-4">
+    <!-- Main Panel: Ticket Overview & Timeline -->
+    <div class="col-12 col-lg-7">
+      <div class="card-surface p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <span class="badge bg-light text-secondary border font-monospace px-2 py-1 mb-2" th:text="${ticket.ticket_id}">TKT-001</span>
+            <h1 class="h4 fw-bold mb-1" th:text="${ticket.subject}">Subject Line</h1>
+          </div>
+          <span class="badge-pill-custom" th:classappend="'badge-' + ${#strings.toLowerCase(ticket.status)}">
+            <i class="bi bi-circle-fill" style="font-size: 0.45rem;"></i>
+            <span th:text="${ticket.status}">OPEN</span>
+          </span>
+        </div>
+
+        <div class="user-chip mb-4">
+          <div class="row g-2 small">
+            <div class="col-12 col-sm-6 text-truncate">
+              <i class="bi bi-person text-muted me-1"></i>
+              <strong>Customer:</strong> <span class="text-dark fw-medium" th:text="${ticket.customer_name}">John Doe</span>
+            </div>
+            <div class="col-12 col-sm-6 text-truncate">
+              <i class="bi bi-envelope text-muted me-1"></i>
+              <strong>Email:</strong> <span class="text-dark fw-medium" th:text="${ticket.customer_email}">john@example.com</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="h6 fw-bold text-uppercase text-secondary mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Issue Description</h2>
+        <div class="p-3 border rounded-3 bg-light text-break" style="white-space: pre-wrap; font-size: 0.925rem; line-height: 1.6;" th:text="${ticket.description}">
+          Ticket body description goes here.
+        </div>
+      </div>
+
+      <!-- Notes & Activity Timeline -->
+      <div class="card-surface p-4">
+        <h2 class="h6 fw-bold text-uppercase text-secondary mb-4" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+          <i class="bi bi-clock-history me-1"></i> Activity & Progress Notes
+        </h2>
+        <div class="timeline" th:if="${not #lists.isEmpty(ticket.notes)}">
+          <div class="timeline-item" th:each="n : ${ticket.notes}">
+            <div class="text-muted small mb-1">
+              <i class="bi bi-calendar3 me-1"></i>
+              <span th:text="${n.created_at != null ? #temporals.format(n.created_at, 'dd MMM yyyy, hh:mm a') : 'Recently Added'}">
+                12 Oct 2026, 04:30 PM
+              </span>
+            </div>
+            <div class="p-3 bg-light rounded-3 text-dark text-break border" style="font-size: 0.925rem;" th:text="${n.note_text}">
+              Internal progress note content.
+            </div>
+          </div>
+        </div>
+        <div th:if="${#lists.isEmpty(ticket.notes)}" class="text-muted small py-4 text-center">
+          <i class="bi bi-chat-left-dots fs-3 d-block text-secondary mb-2"></i>
+          No activity notes recorded yet.
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Panel: Status & Note Updates -->
+    <div class="col-12 col-lg-5">
+      <div class="card-surface p-4 sticky-top" style="top: 24px;">
+        <h2 class="h6 fw-bold text-uppercase text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+          <i class="bi bi-sliders me-1"></i> Update Ticket Status
+        </h2>
+
+        <form th:action="@{'/tickets/' + ${ticket.ticket_id} + '/update'}" th:object="${updateRequest}" method="post">
+          <!-- Hidden Version Field for Optimistic Locking -->
+          <input type="hidden" th:field="*{version}" />
+
+          <div class="mb-3">
+            <label for="status" class="form-label small fw-semibold">Status Lifecycle</label>
+            <select id="status" th:field="*{status}" class="form-select">
+              <option value="OPEN" th:selected="${ticket.status.name() == 'OPEN'}">Open</option>
+              <option value="IN_PROGRESS" th:selected="${ticket.status.name() == 'IN_PROGRESS'}">In Progress</option>
+              <option value="CLOSED" th:selected="${ticket.status.name() == 'CLOSED'}">Closed</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label for="notes" class="form-label small fw-semibold">Internal Progress Note</label>
+            <textarea id="notes" rows="4" th:field="*{notes}" class="form-control"
+                      placeholder="Log troubleshooting findings or internal decisions..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold py-2 shadow-sm">
+            <i class="bi bi-save me-1"></i> Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;" th:if="${toastMessage}">
+  <div id="liveToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body d-flex align-items-center gap-2 py-3 px-3">
+        <!-- Success Icon -->
+        <i th:if="${toastType != 'danger'}" class="bi bi-check-circle-fill text-success fs-5"></i>
+        <!-- Conflict/Error Icon -->
+        <i th:if="${toastType == 'danger'}" class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>
+        <span class="fw-medium small" th:text="${toastMessage}">Action completed successfully!</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Auto-trigger Toast on Load -->
+<script th:if="${toastMessage}">
+  document.addEventListener('DOMContentLoaded', () => {
+    const toastElem = document.getElementById('liveToast');
+    if (toastElem) {
+      const toast = new bootstrap.Toast(toastElem, { delay: 5000 });
+      toast.show();
+    }
+  });
+</script>
+</body>
+</html>

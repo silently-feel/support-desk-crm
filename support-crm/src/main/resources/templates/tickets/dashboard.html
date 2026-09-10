@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support CRM | Operations Dashboard</title>
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background-color: #0f172a;
+            border-bottom: 1px solid #1e293b;
+        }
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+        }
+        .table > :not(caption) > * > * {
+            padding: 1rem 1.15rem;
+            border-bottom-color: #f1f5f9;
+        }
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .badge-pill-custom {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.725rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            white-space: nowrap;
+        }
+        .badge-open { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-in_progress { background-color: #fefce8; color: #a16207; border: 1px solid #fef08a; }
+        .badge-closed { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+        .ticket-id-tag {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #0284c7;
+            background: #f0f9ff;
+            padding: 0.2rem 0.45rem;
+            border-radius: 6px;
+            border: 1px solid #bae6fd;
+            text-decoration: none;
+        }
+
+        /* Sort toggle styling */
+        .btn-sort-toggle {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            transition: all 0.15s ease-in-out;
+        }
+        .btn-sort-toggle.active {
+            background-color: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/tickets">
+            <span class="bg-primary text-white p-2 rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <i class="bi bi-shield-check"></i>
+            </span>
+            <span>SupportDesk <span class="badge bg-secondary-subtle text-light-emphasis small fw-normal ms-1">CRM</span></span>
+        </a>
+        <a href="/tickets/new" class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> New Ticket
+        </a>
+    </div>
+</nav>
+
+<div class="container my-4 my-md-5">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1">Customer Inquiries</h1>
+            <p class="text-muted mb-0 small">Manage, triage, and organize tickets by queue order or urgency.</p>
+        </div>
+        <a href="/tickets/new" class="btn btn-primary d-none d-md-inline-flex align-items-center gap-2 rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle"></i> Create Ticket
+        </a>
+    </div>
+
+    <!-- Filter & Live Search Toolbar -->
+    <div class="card-surface p-3 mb-4">
+        <form method="get" action="/tickets" class="row g-2 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted ps-3">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="liveSearchInput" name="search" class="form-control border-start-0 ps-1"
+                           placeholder="Search customer, ID, or subject..."
+                           th:value="${searchQuery}" autocomplete="off">
+                </div>
+            </div>
+            <div class="col-7 col-md-3">
+                <select id="statusFilter" name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="OPEN" th:selected="${selectedStatus != null and selectedStatus.name() == 'OPEN'}">Open</option>
+                    <option value="IN_PROGRESS" th:selected="${selectedStatus != null and selectedStatus.name() == 'IN_PROGRESS'}">In Progress</option>
+                    <option value="CLOSED" th:selected="${selectedStatus != null and selectedStatus.name() == 'CLOSED'}">Closed</option>
+                </select>
+            </div>
+            <div class="col-5 col-md-2">
+                <button type="submit" class="btn btn-secondary w-100 rounded-3">Filter</button>
+            </div>
+            <div class="col-12 col-md-2" th:if="${searchQuery != null or selectedStatus != null}">
+                <a href="/tickets" class="btn btn-outline-danger w-100 rounded-3">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Triage Sorting Controls (FIFO vs Urgency/Deadline) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.725rem; letter-spacing: 0.05em;">
+                <i class="bi bi-arrow-down-up me-1"></i> Triage View:
+            </span>
+            <div class="btn-group" role="group" aria-label="Sort order">
+                <button type="button" id="btnSortFifo" class="btn btn-sort-toggle active">
+                    <i class="bi bi-clock-history me-1"></i> FIFO (Oldest First)
+                </button>
+                <button type="button" id="btnSortRecent" class="btn btn-sort-toggle">
+                    <i class="bi bi-calendar-event me-1"></i> Newest First
+                </button>
+                <button type="button" id="btnSortUrgency" class="btn btn-sort-toggle">
+                    <i class="bi bi-fire me-1"></i> Urgency / Active Queue
+                </button>
+            </div>
+        </div>
+        <div class="text-muted small">
+            Showing <strong th:text="${tickets != null ? tickets.size() : 0}">0</strong> ticket(s)
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="card-surface overflow-hidden">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" id="ticketsTable">
+                <thead class="bg-light">
+                <tr class="text-secondary small text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.75rem;">
+                    <th>Ticket ID</th>
+                    <th>Customer</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Logged At</th>
+                    <th class="text-end">Action</th>
+                </tr>
+                </thead>
+                <tbody id="ticketsBody">
+                <!-- Note the data attributes: data-id and data-timestamp allow instant JS sorting -->
+                <tr th:each="t : ${tickets}"
+                    th:attr="data-id=${t.ticket_id}, data-timestamp=${t.created_at}, data-status=${t.status}">
+                    <td>
+                        <a th:href="@{'/tickets/' + ${t.ticket_id}}" class="ticket-id-tag" th:text="${t.ticket_id}">TKT-001</a>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;" th:text="${t.customer_name}">Customer Name</div>
+                    </td>
+                    <td style="max-width: 280px;" class="text-truncate">
+                        <span class="text-dark fw-medium" th:text="${t.subject}">Subject text</span>
+                    </td>
+                    <td>
+                            <span class="badge-pill-custom" th:classappend="'badge-' + ${#strings.toLowerCase(t.status)}">
+                                <i class="bi bi-circle-fill" style="font-size: 0.45rem;"></i>
+                                <span th:text="${t.status}">OPEN</span>
+                            </span>
+                    </td>
+                    <td class="text-muted small" th:text="${#temporals.format(t.created_at, 'dd MMM yyyy, hh:mm a')}">
+                        12 Oct 2026, 04:30 PM
+                    </td>
+                    <td class="text-end">
+                        <a th:href="@{'/tickets/' + ${t.ticket_id}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                            View <i class="bi bi-chevron-right ms-1"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(tickets)}" id="emptyDbRow">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                        <div class="fw-semibold">No support tickets found</div>
+                        <div class="small">Try adjusting your search criteria or create a new ticket.</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;" th:if="${toastMessage}">
+    <div id="liveToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2 py-3 px-3">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <span class="fw-medium small" th:text="${toastMessage}">Action completed successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Live Search & Instant Triage Sorting Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('liveSearchInput');
+        const tbody = document.getElementById('ticketsBody');
+        const btnSortFifo = document.getElementById('btnSortFifo');
+        const btnSortRecent = document.getElementById('btnSortRecent');
+        const btnSortUrgency = document.getElementById('btnSortUrgency');
+        const sortButtons = [btnSortFifo, btnSortRecent, btnSortUrgency];
+
+        // 1. Live Filter as you type
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase().trim();
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                if (row.cells.length < 5) return;
+                const rowContent = row.textContent.toLowerCase();
+                row.style.display = rowContent.includes(term) ? '' : 'none';
+            });
+        });
+
+        // 2. Client-side Sorting Functions
+        function getRows() {
+            return Array.from(tbody.querySelectorAll('tr')).filter(r => r.cells.length >= 5);
+        }
+
+        function setActiveButton(activeBtn) {
+            sortButtons.forEach(btn => btn.classList.remove('active'));
+            activeBtn.classList.add('active');
+        }
+
+        // FIFO: Sort by creation timestamp ascending (oldest first - FIFO queue)
+        btnSortFifo.addEventListener('click', () => {
+            setActiveButton(btnSortFifo);
+            const rows = getRows();
+            rows.sort((a, b) => {
+                const timeA = new Date(a.getAttribute('data-timestamp') || 0).getTime();
+                const timeB = new Date(b.getAttribute('data-timestamp') || 0).getTime();
+                return timeA - timeB;
+            });
+            rows.forEach(r => tbody.appendChild(r));
+        });
+
+        // Newest First: Sort by creation timestamp descending
+        btnSortRecent.addEventListener('click', () => {
+            setActiveButton(btnSortRecent);
+            const rows = getRows();
+            rows.sort((a, b) => {
+                const timeA = new Date(a.getAttribute('data-timestamp') || 0).getTime();
+                const timeB = new Date(b.getAttribute('data-timestamp') || 0).getTime();
+                return timeB - timeA;
+            });
+            rows.forEach(r => tbody.appendChild(r));
+        });
+
+        // Urgency / Active Queue: Open & In Progress (oldest unhandled first), Closed pushed to bottom
+        btnSortUrgency.addEventListener('click', () => {
+            setActiveButton(btnSortUrgency);
+            const rows = getRows();
+
+            const statusWeight = {
+                'OPEN': 1,
+                'IN_PROGRESS': 2,
+                'CLOSED': 3
+            };
+
+            rows.sort((a, b) => {
+                const statusA = (a.getAttribute('data-status') || '').toUpperCase();
+                const statusB = (b.getAttribute('data-status') || '').toUpperCase();
+                const weightA = statusWeight[statusA] || 99;
+                const weightB = statusWeight[statusB] || 99;
+
+                // Priority to Open/In Progress over Closed
+                if (weightA !== weightB) {
+                    return weightA - weightB;
+                }
+
+                // Within same status, oldest first (longest waiting customer gets priority)
+                const timeA = new Date(a.getAttribute('data-timestamp') || 0).getTime();
+                const timeB = new Date(b.getAttribute('data-timestamp') || 0).getTime();
+                return timeA - timeB;
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        });
+    });
+</script>
+
+<!-- Auto-trigger Toast on Load -->
+<script th:if="${toastMessage}">
+    document.addEventListener('DOMContentLoaded', () => {
+        const toastElem = document.getElementById('liveToast');
+        if (toastElem) {
+            const toast = new bootstrap.Toast(toastElem, { delay: 4000 });
+            toast.show();
+        }
+    });
+</script>
+</body>
+</html>
