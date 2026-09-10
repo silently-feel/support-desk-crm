@@ -19,13 +19,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/tickets")
 @RequiredArgsConstructor
 public class TicketWebController {
 
     private final TicketService ticketService;
 
-    @GetMapping
+    // Direct root access automatically redirects to tickets console
+    @GetMapping("/")
+    public String rootRedirect() {
+        return "redirect:/tickets";
+    }
+
+    @GetMapping("/tickets")
     public String dashboard(@RequestParam(required = false) TicketStatus status,
                             @RequestParam(required = false) String search,
                             Model model) {
@@ -36,7 +41,7 @@ public class TicketWebController {
         return "tickets/dashboard";
     }
 
-    @GetMapping("/new")
+    @GetMapping("/tickets/new")
     public String createForm(Model model) {
         if (!model.containsAttribute("ticketRequest")) {
             model.addAttribute("ticketRequest", new CreateTicketRequest());
@@ -44,7 +49,7 @@ public class TicketWebController {
         return "tickets/create";
     }
 
-    @PostMapping("/new")
+    @PostMapping("/tickets/new")
     public String submitCreate(@Valid @ModelAttribute("ticketRequest") CreateTicketRequest request,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes) {
@@ -58,7 +63,7 @@ public class TicketWebController {
         return "redirect:/tickets";
     }
 
-    @GetMapping("/{ticket_id}")
+    @GetMapping("/tickets/{ticket_id}")
     public String viewDetail(@PathVariable String ticket_id, Model model) {
         TicketDetailResponse ticket = ticketService.getTicketByTicketId(ticket_id);
         model.addAttribute("ticket", ticket);
@@ -71,7 +76,7 @@ public class TicketWebController {
         return "tickets/detail";
     }
 
-    @PostMapping("/{ticket_id}/update")
+    @PostMapping("/tickets/{ticket_id}/update")
     public String updateTicket(@PathVariable String ticket_id,
                                @ModelAttribute("updateRequest") UpdateTicketRequest request,
                                RedirectAttributes redirectAttributes) {

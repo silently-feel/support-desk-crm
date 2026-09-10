@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support CRM | Operations Dashboard</title>
+    <!-- Blue Shield Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230d6efd'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z'/%3E%3C/svg%3E">
     <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -58,7 +60,6 @@
             text-decoration: none;
         }
 
-        /* Sort toggle styling */
         .btn-sort-toggle {
             font-size: 0.8rem;
             font-weight: 600;
@@ -93,7 +94,6 @@
 </nav>
 
 <div class="container my-4 my-md-5">
-    <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
             <h1 class="h4 fw-bold mb-1">Customer Inquiries</h1>
@@ -104,7 +104,6 @@
         </a>
     </div>
 
-    <!-- Filter & Live Search Toolbar -->
     <div class="card-surface p-3 mb-4">
         <form method="get" action="/tickets" class="row g-2 align-items-center">
             <div class="col-12 col-md-5">
@@ -134,7 +133,6 @@
         </form>
     </div>
 
-    <!-- Triage Sorting Controls (FIFO vs Urgency/Deadline) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div class="d-flex align-items-center gap-2">
             <span class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.725rem; letter-spacing: 0.05em;">
@@ -157,7 +155,6 @@
         </div>
     </div>
 
-    <!-- Tickets Table -->
     <div class="card-surface overflow-hidden">
         <div class="table-responsive">
             <table class="table align-middle mb-0" id="ticketsTable">
@@ -172,7 +169,6 @@
                 </tr>
                 </thead>
                 <tbody id="ticketsBody">
-                <!-- Note the data attributes: data-id and data-timestamp allow instant JS sorting -->
                 <tr th:each="t : ${tickets}"
                     th:attr="data-id=${t.ticket_id}, data-timestamp=${t.created_at}, data-status=${t.status}">
                     <td>
@@ -185,10 +181,10 @@
                         <span class="text-dark fw-medium" th:text="${t.subject}">Subject text</span>
                     </td>
                     <td>
-                            <span class="badge-pill-custom" th:classappend="'badge-' + ${#strings.toLowerCase(t.status)}">
-                                <i class="bi bi-circle-fill" style="font-size: 0.45rem;"></i>
-                                <span th:text="${t.status}">OPEN</span>
-                            </span>
+                        <span class="badge-pill-custom" th:classappend="'badge-' + ${#strings.toLowerCase(t.status)}">
+                            <i class="bi bi-circle-fill" style="font-size: 0.45rem;"></i>
+                            <span th:text="${t.status}">OPEN</span>
+                        </span>
                     </td>
                     <td class="text-muted small" th:text="${#temporals.format(t.created_at, 'dd MMM yyyy, hh:mm a')}">
                         12 Oct 2026, 04:30 PM
@@ -212,7 +208,6 @@
     </div>
 </div>
 
-<!-- Floating Toast Container -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;" th:if="${toastMessage}">
     <div id="liveToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -227,7 +222,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Live Search & Instant Triage Sorting Script -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('liveSearchInput');
@@ -237,7 +231,6 @@
         const btnSortUrgency = document.getElementById('btnSortUrgency');
         const sortButtons = [btnSortFifo, btnSortRecent, btnSortUrgency];
 
-        // 1. Live Filter as you type
         searchInput.addEventListener('input', function() {
             const term = this.value.toLowerCase().trim();
             const rows = tbody.querySelectorAll('tr');
@@ -249,7 +242,6 @@
             });
         });
 
-        // 2. Client-side Sorting Functions
         function getRows() {
             return Array.from(tbody.querySelectorAll('tr')).filter(r => r.cells.length >= 5);
         }
@@ -259,7 +251,6 @@
             activeBtn.classList.add('active');
         }
 
-        // FIFO: Sort by creation timestamp ascending (oldest first - FIFO queue)
         btnSortFifo.addEventListener('click', () => {
             setActiveButton(btnSortFifo);
             const rows = getRows();
@@ -271,7 +262,6 @@
             rows.forEach(r => tbody.appendChild(r));
         });
 
-        // Newest First: Sort by creation timestamp descending
         btnSortRecent.addEventListener('click', () => {
             setActiveButton(btnSortRecent);
             const rows = getRows();
@@ -283,7 +273,6 @@
             rows.forEach(r => tbody.appendChild(r));
         });
 
-        // Urgency / Active Queue: Open & In Progress (oldest unhandled first), Closed pushed to bottom
         btnSortUrgency.addEventListener('click', () => {
             setActiveButton(btnSortUrgency);
             const rows = getRows();
@@ -300,12 +289,10 @@
                 const weightA = statusWeight[statusA] || 99;
                 const weightB = statusWeight[statusB] || 99;
 
-                // Priority to Open/In Progress over Closed
                 if (weightA !== weightB) {
                     return weightA - weightB;
                 }
 
-                // Within same status, oldest first (longest waiting customer gets priority)
                 const timeA = new Date(a.getAttribute('data-timestamp') || 0).getTime();
                 const timeB = new Date(b.getAttribute('data-timestamp') || 0).getTime();
                 return timeA - timeB;
@@ -316,7 +303,6 @@
     });
 </script>
 
-<!-- Auto-trigger Toast on Load -->
 <script th:if="${toastMessage}">
     document.addEventListener('DOMContentLoaded', () => {
         const toastElem = document.getElementById('liveToast');
