@@ -1,7 +1,12 @@
 # Stage 1: Build the JAR package using Java 21
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
+
+# Cache dependencies
 COPY support-crm/pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source and build JAR
 COPY support-crm/src ./src
 RUN mvn clean package -DskipTests
 
@@ -9,7 +14,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Install timezone data so Alpine recognizes Asia/Kolkata
+# Indian Standard Time (IST)
 RUN apk add --no-cache tzdata
 ENV TZ="Asia/Kolkata"
 
@@ -17,7 +22,6 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Pass user.timezone to JVM to force Indian Standard Time
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Duser.timezone=Asia/Kolkata"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
