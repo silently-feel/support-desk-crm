@@ -6,14 +6,17 @@ import com.support.crm.dto.TicketDetailResponse;
 import com.support.crm.dto.TicketSummaryResponse;
 import com.support.crm.dto.UpdateTicketRequest;
 import com.support.crm.model.TicketStatus;
+import com.support.crm.service.SseNotificationService;
 import com.support.crm.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -23,8 +26,8 @@ import java.util.List;
 public class TicketWebController {
 
     private final TicketService ticketService;
+    private final SseNotificationService sseNotificationService;
 
-    // Direct root access automatically redirects to tickets console
     @GetMapping("/")
     public String rootRedirect() {
         return "redirect:/tickets";
@@ -79,9 +82,11 @@ public class TicketWebController {
     @PostMapping("/tickets/{ticket_id}/update")
     public String updateTicket(@PathVariable String ticket_id,
                                @ModelAttribute("updateRequest") UpdateTicketRequest request,
+                               Authentication auth,
                                RedirectAttributes redirectAttributes) {
         try {
-            ticketService.updateTicket(ticket_id, request);
+            String loggedInUsername = auth != null ? auth.getName() : null;
+            ticketService.updateTicket(ticket_id, request, loggedInUsername);
             redirectAttributes.addFlashAttribute("toastMessage", "Ticket status and notes updated successfully!");
             redirectAttributes.addFlashAttribute("toastType", "success");
         } catch (OptimisticLockingFailureException ex) {
@@ -90,5 +95,41 @@ public class TicketWebController {
         }
 
         return "redirect:/tickets/" + ticket_id;
+    }
+
+    @PostMapping("/tickets/{ticket_id}/claim")
+    public String claimTicket(@PathVariable("ticket_id") String ticketId,
+                              Authentication auth,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            ticketService.claimTicket(ticketId, auth != null ? auth.getName() : null);
+            redirectAttributes.addFlashAttribute("toastMessage", "Ticket successfully claimed by you!");
+            redirectAttributes.addFlashAttribute("toastType", "success");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("toastMessage", ex.getMessage());
+            redirectAttributes.addFlashAttribute("toastType", "danger");
+        }
+        return "redirect:/tickets/" + ticketId;
+    }
+
+    @PostMapping("/tickets/{ticket_id}/resolve")
+    public String resolveTicket(@PathVariable("ticket_id") String ticketId,
+                                Authentication auth,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            ticketService.resolveTicket(ticketId, auth != null ? auth.getName() : null);
+            redirectAttributes.addFlashAttribute("toastMessage", "Ticket marked as CLOSED!");
+            redirectAttributes.addFlashAttribute("toastType", "success");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("toastMessage", ex.getMessage());
+            redirectAttributes.addFlashAttribute("toastType", "danger");
+        }
+        return "redirect:/tickets/" + ticketId;
+    }
+
+    @GetMapping("/tickets/live-stream")
+    @ResponseBody
+    public SseEmitter liveStream() {
+        return sseNotificationService.subscribe();
     }
 }

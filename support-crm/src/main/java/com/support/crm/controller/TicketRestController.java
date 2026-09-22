@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,13 +49,56 @@ public class TicketRestController {
     @PutMapping("/{ticket_id}")
     public ResponseEntity<?> updateTicket(
             @PathVariable("ticket_id") String ticketId,
-            @RequestBody UpdateTicketRequest request) {
+            @RequestBody UpdateTicketRequest request,
+            Authentication auth) {
         try {
-            Map<String, Object> response = ticketService.updateTicket(ticketId, request);
+            String loggedInUsername = (auth != null) ? auth.getName() : null;
+            Map<String, Object> response = ticketService.updateTicket(ticketId, request, loggedInUsername);
             return ResponseEntity.ok(response);
         } catch (OptimisticLockingFailureException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
                     "error", "Conflict",
+                    "message", ex.getMessage()
+            ));
+        }
+    }
+
+    // 5. POST /api/tickets/{ticket_id}/claim
+    @PostMapping("/{ticket_id}/claim")
+    public ResponseEntity<?> claimTicket(@PathVariable("ticket_id") String ticketId, Authentication auth) {
+        try {
+            String username = (auth != null) ? auth.getName() : "Agent";
+            ticketService.claimTicket(ticketId, username);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Ticket " + ticketId + " claimed by " + username
+            ));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                    "error", "AlreadyClaimed",
+                    "message", ex.getMessage()
+            ));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "BadRequest",
+                    "message", ex.getMessage()
+            ));
+        }
+    }
+
+    // 6. POST /api/tickets/{ticket_id}/resolve
+    @PostMapping("/{ticket_id}/resolve")
+    public ResponseEntity<?> resolveTicket(@PathVariable("ticket_id") String ticketId, Authentication auth) {
+        try {
+            String username = (auth != null) ? auth.getName() : "Agent";
+            ticketService.resolveTicket(ticketId, username);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Ticket " + ticketId + " marked as resolved by " + username
+            ));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "BadRequest",
                     "message", ex.getMessage()
             ));
         }

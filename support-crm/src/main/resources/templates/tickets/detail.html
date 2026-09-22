@@ -37,7 +37,7 @@
     }
     .badge-open { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
     .badge-in_progress { background-color: #fefce8; color: #a16207; border: 1px solid #fef08a; }
-    .badge-closed { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .badge-closed { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
 
     .timeline {
       border-left: 2px solid #e2e8f0;
@@ -66,6 +66,40 @@
       border-radius: 8px;
       border: 1px solid #e2e8f0;
     }
+
+    .user-nav-chip {
+      background-color: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.3rem 0.75rem 0.3rem 0.4rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s ease;
+    }
+    .user-nav-chip:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+    .user-nav-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .user-nav-placeholder {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: #0d6efd;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
@@ -78,9 +112,25 @@
       </span>
       <span>SupportDesk <span class="badge bg-secondary-subtle text-light-emphasis small fw-normal ms-1">CRM</span></span>
     </a>
-    <a href="/tickets" class="btn btn-outline-light btn-sm px-3 rounded-pill">
-      <i class="bi bi-arrow-left me-1"></i> Dashboard
-    </a>
+
+    <div class="d-flex align-items-center gap-2">
+      <!-- Agent Profile Navigation Chip -->
+      <a href="/profile" class="user-nav-chip">
+        <img th:if="${currentUser != null and currentUser.avatarUrl != null}"
+             th:src="${currentUser.avatarUrl}"
+             class="user-nav-avatar" alt="Avatar">
+        <span th:if="${currentUser == null or currentUser.avatarUrl == null}"
+              class="user-nav-placeholder">
+          <i class="bi bi-person-fill"></i>
+        </span>
+        <span class="small fw-semibold"
+              th:text="${currentUser != null ? currentUser.fullname : 'Profile'}">Agent</span>
+      </a>
+
+      <a href="/tickets" class="btn btn-outline-light btn-sm px-3 rounded-pill">
+        <i class="bi bi-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
   </div>
 </nav>
 
@@ -118,19 +168,26 @@
         </div>
       </div>
 
+      <!-- Chronological Activity Timeline with Agent Identity & Time -->
       <div class="card-surface p-4">
         <h2 class="h6 fw-bold text-uppercase text-secondary mb-4" style="font-size: 0.75rem; letter-spacing: 0.05em;">
           <i class="bi bi-clock-history me-1"></i> Activity & Progress Notes
         </h2>
         <div class="timeline" th:if="${not #lists.isEmpty(ticket.notes)}">
           <div class="timeline-item" th:each="n : ${ticket.notes}">
-            <div class="text-muted small mb-1">
-              <i class="bi bi-calendar3 me-1"></i>
-              <span th:text="${n.created_at != null ? #temporals.format(n.created_at, 'dd MMM yyyy, hh:mm a') : 'Recently Added'}">
-                12 Oct 2026, 04:30 PM
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small fw-semibold">
+                <i class="bi bi-person-fill me-1"></i>
+                <span th:text="${n.author_name != null ? n.author_name : 'Support Agent'}">Support Agent</span>
+              </span>
+              <span class="text-muted small">
+                <i class="bi bi-calendar3 me-1"></i>
+                <span th:text="${n.created_at != null ? #temporals.format(n.created_at, 'dd MMM yyyy, hh:mm a') : 'Recently Added'}">
+                  12 Oct 2026, 04:30 PM
+                </span>
               </span>
             </div>
-            <div class="p-3 bg-light rounded-3 text-dark text-break border" style="font-size: 0.925rem;" th:text="${n.note_text}">
+            <div class="p-3 bg-light rounded-3 text-dark text-break border" style="font-size: 0.925rem; line-height: 1.6;" th:text="${n.note_text}">
               Internal progress note content.
             </div>
           </div>
@@ -154,16 +211,16 @@
           <div class="mb-3">
             <label for="status" class="form-label small fw-semibold">Status Lifecycle</label>
             <select id="status" th:field="*{status}" class="form-select">
-              <option value="OPEN" th:selected="${ticket.status.name() == 'OPEN'}">Open</option>
-              <option value="IN_PROGRESS" th:selected="${ticket.status.name() == 'IN_PROGRESS'}">In Progress</option>
-              <option value="CLOSED" th:selected="${ticket.status.name() == 'CLOSED'}">Closed</option>
+              <option value="OPEN" th:selected="${ticket.status != null and ticket.status.name() == 'OPEN'}">Open</option>
+              <option value="IN_PROGRESS" th:selected="${ticket.status != null and ticket.status.name() == 'IN_PROGRESS'}">In Progress</option>
+              <option value="CLOSED" th:selected="${ticket.status != null and ticket.status.name() == 'CLOSED'}">Closed (Resolved)</option>
             </select>
           </div>
 
           <div class="mb-4">
             <label for="notes" class="form-label small fw-semibold">Internal Progress Note</label>
             <textarea id="notes" rows="4" th:field="*{notes}" class="form-control"
-                      placeholder="Log troubleshooting findings or internal decisions..."></textarea>
+                      placeholder="Log troubleshooting findings or resolution summary..."></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold py-2 shadow-sm">

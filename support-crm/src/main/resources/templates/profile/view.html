@@ -1,10 +1,211 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operator Profile | SupportDesk</title>
+    <!-- Blue Shield Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230d6efd'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z'/%3E%3C/svg%3E">
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background-color: #0f172a;
+            border-bottom: 1px solid #1e293b;
+        }
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+        }
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #0d6efd;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #eff6ff;
+            color: #0d6efd;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.75rem;
+            border: 3px solid #bfdbfe;
+        }
+    </style>
 </head>
 <body>
-$END$
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/tickets">
+            <span class="bg-primary text-white p-2 rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <i class="bi bi-shield-check"></i>
+            </span>
+            <span>SupportDesk <span class="badge bg-secondary-subtle text-light-emphasis small fw-normal ms-1">CRM</span></span>
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <a href="/tickets" class="btn btn-outline-light btn-sm px-3 rounded-pill fw-semibold">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+            <a href="/logout" class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-semibold">
+                <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4 my-md-5">
+    <div class="row g-4">
+        <!-- Left Column: Agent Details & Photo Upload -->
+        <div class="col-12 col-lg-5">
+            <div class="card-surface p-4 text-center mb-4">
+                <div class="mb-3">
+                    <img th:if="${user.avatarUrl != null}" th:src="${user.avatarUrl}" class="avatar-circle" alt="Profile Avatar" />
+                    <div th:if="${user.avatarUrl == null}" class="avatar-placeholder">
+                        <i class="bi bi-person"></i>
+                    </div>
+                </div>
+
+                <h1 class="h4 fw-bold text-dark mb-1" th:text="${user.fullname}">Full Name</h1>
+                <p class="text-muted small mb-3">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5"
+                          th:text="${user.role}">ROLE_AGENT</span>
+                </p>
+
+                <!-- Avatar Upload Form -->
+                <form th:action="@{/profile/avatar}" method="post" enctype="multipart/form-data" class="mt-3 p-3 bg-light rounded-3 border text-start">
+                    <label for="avatarFile" class="form-label small fw-semibold text-secondary mb-1">
+                        <i class="bi bi-camera me-1"></i> Upload Profile Avatar
+                    </label>
+                    <input type="file" id="avatarFile" name="avatarFile" class="form-control form-control-sm mb-2" accept="image/*" required />
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-semibold">
+                        Update Avatar
+                    </button>
+                    <div class="text-success small mt-2 text-center" th:if="${avatarSuccess}" th:text="${avatarSuccess}"></div>
+                    <div class="text-danger small mt-2 text-center" th:if="${avatarError}" th:text="${avatarError}"></div>
+                </form>
+            </div>
+
+            <!-- Agent Contact Information Card -->
+            <div class="card-surface p-4">
+                <h2 class="h6 fw-bold text-uppercase text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                    <i class="bi bi-info-circle me-1"></i> Profile Details
+                </h2>
+
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Operator Username</span>
+                    <strong class="text-dark font-monospace" th:text="${user.username}">username</strong>
+                </div>
+
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Corporate Email</span>
+                    <strong class="text-dark" th:text="${user.email != null ? user.email : 'Not set'}">agent@supportcrm.com</strong>
+                </div>
+
+                <div>
+                    <span class="text-muted small d-block">Verification Mobile</span>
+                    <strong class="text-dark" th:text="${user.mobileNumber != null ? user.mobileNumber : 'Not registered'}">9999999999</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Passkey / Security Overview & Click-to-Open Form -->
+        <div class="col-12 col-lg-7">
+            <div class="card-surface p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div>
+                        <h2 class="h5 fw-bold text-dark mb-1">Security & Access Passkey</h2>
+                        <p class="text-muted small mb-0">Manage and update your authentication password.</p>
+                    </div>
+
+                    <!-- Button to Reveal Password Change Form -->
+                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#changePasswordSection"
+                            aria-expanded="false"
+                            aria-controls="changePasswordSection">
+                        <i class="bi bi-key-fill me-1"></i> Change Passkey
+                    </button>
+                </div>
+
+                <div class="alert alert-success small py-2 px-3 rounded-3" th:if="${passwordSuccess}" th:text="${passwordSuccess}"></div>
+
+                <!-- Info Box shown before clicking -->
+                <div class="p-3 bg-light rounded-3 border d-flex align-items-center gap-3 mb-3">
+                    <i class="bi bi-shield-lock text-primary fs-3"></i>
+                    <div class="small text-muted">
+                        Click the <strong>Change Passkey</strong> button above if you need to update your password credentials.
+                    </div>
+                </div>
+
+                <!-- Collapsible Password Procedure -->
+                <div class="collapse"
+                     th:classappend="${#fields.hasErrors('${passwordRequest.*}')} ? 'show' : ''"
+                     id="changePasswordSection">
+                    <div class="border-top pt-4 mt-3">
+                        <h3 class="h6 fw-bold text-dark mb-3">Update Account Password</h3>
+
+                        <form th:action="@{/profile/change-password}" th:object="${passwordRequest}" method="post">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label small fw-semibold text-secondary">Current Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock"></i></span>
+                                    <input type="password" id="currentPassword" th:field="*{currentPassword}" class="form-control border-start-0" placeholder="Enter current password" required />
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label small fw-semibold text-secondary">New Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-key"></i></span>
+                                    <input type="password" id="newPassword" th:field="*{newPassword}" class="form-control border-start-0" placeholder="At least 6 characters" required />
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label small fw-semibold text-secondary">Confirm New Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-check2-circle"></i></span>
+                                    <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control border-start-0" placeholder="Re-type new password" required />
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                                    <i class="bi bi-shield-check me-1"></i> Save New Password
+                                </button>
+                                <button type="button" class="btn btn-light border rounded-pill px-3" data-bs-toggle="collapse" data-bs-target="#changePasswordSection">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

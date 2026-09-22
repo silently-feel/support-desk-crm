@@ -1,10 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Track Ticket Status | Customer Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
-<body>
-$END$
+<body class="bg-light min-vh-100 d-flex flex-column">
+
+<nav class="navbar navbar-dark bg-dark py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/portal/inquiry"><i class="bi bi-shield-check text-primary me-2"></i>SupportDesk Portal</a>
+        <a href="/portal/inquiry" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-plus-circle me-1"></i>New Inquiry</a>
+    </div>
+</nav>
+
+<div class="container my-auto py-5" style="max-width: 650px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <h2 class="h5 fw-bold mb-3">Track Your Complaint Status</h2>
+        <form method="get" action="/portal/track" class="input-group mb-2">
+            <input type="text" name="ref" class="form-control font-monospace" placeholder="Enter Ref ID e.g. TKT-001" th:value="${searchedRef}" required />
+            <button class="btn btn-primary px-4 fw-semibold" type="submit"><i class="bi bi-search me-1"></i> Track</button>
+        </form>
+    </div>
+
+    <div th:if="${notFound}" class="alert alert-danger rounded-4 shadow-sm text-center">
+        No ticket found matching the reference ID provided. Please verify the ID.
+    </div>
+
+    <div th:if="${ticket}" class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="badge bg-light text-primary border font-monospace px-3 py-2 fs-6" th:text="${ticket.ticket_id}">TKT-001</span>
+            <span class="badge px-3 py-2 rounded-pill fs-6"
+                  th:classappend="${ticket.status.name() == 'CLOSED' ? 'bg-success text-white' : (ticket.status.name() == 'IN_PROGRESS' ? 'bg-warning text-dark' : 'bg-primary text-white')}"
+                  th:text="${ticket.status}">OPEN</span>
+        </div>
+        <h3 class="h5 fw-bold" th:text="${ticket.subject}">Subject</h3>
+        <p class="text-muted small border-bottom pb-3" th:text="${ticket.description}">Description</p>
+
+        <h4 class="h6 fw-bold text-uppercase text-secondary" style="font-size: 0.75rem;">Progress Notes & Updates</h4>
+        <div th:if="${not #lists.isEmpty(ticket.notes)}" class="mt-2">
+            <div th:each="n : ${ticket.notes}" class="p-3 bg-light rounded-3 mb-2 border-start border-3 border-primary">
+                <div class="small text-muted mb-1" th:text="${#temporals.format(n.created_at, 'dd MMM yyyy, hh:mm a')}">Time</div>
+                <div class="text-dark small" th:text="${n.note_text}">Note</div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(ticket.notes)}" class="text-muted small fst-italic">
+            No agent updates logged yet. Your ticket is currently queued.
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -20,7 +20,7 @@ public class TicketDetailResponse {
     private String subject;
     private String description;
     private TicketStatus status;
-    private Long version; // Added version field
+    private Long version;
     private List<NoteDto> notes;
 
     @Getter
@@ -30,5 +30,6 @@ public class TicketDetailResponse {
     public static class NoteDto {
         private String note_text;
         private LocalDateTime created_at;
+        private String author_name;
     }
 }

@@ -60,6 +60,18 @@ public class Ticket {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "assigned_agent_id")
+    private Long assignedAgentId;
+
+    @Column(name = "assigned_agent_name")
+    private String assignedAgentName;
+
+    @Column(name = "claimed_at")
+    private java.time.LocalDateTime claimedAt;
+
+    @Column(name = "resolved_at")
+    private java.time.LocalDateTime resolvedAt;
+
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes = new ArrayList<>();
 }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,4 +18,6 @@ public class TicketSummaryResponse {
     private String subject;
     private TicketStatus status;
     private LocalDateTime created_at;
+    private LocalDateTime claimed_at;
+    private String assigned_agent_name;
 }
