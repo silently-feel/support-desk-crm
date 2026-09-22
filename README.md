@@ -296,6 +296,34 @@ support-desk-crm/
 
 ---
 
+
+## 🌐 Live Application & Endpoints
+
+- **Base URL:** [https://support-desk-crm-qs00.onrender.com](https://support-desk-crm-qs00.onrender.com)
+- **Tickets Dashboard:** [https://support-desk-crm-qs00.onrender.com/tickets](https://support-desk-crm-qs00.onrender.com/tickets)
+- **Create New Ticket:** [https://support-desk-crm-qs00.onrender.com/tickets/new](https://support-desk-crm-qs00.onrender.com/tickets/new)
+- **Customer Portal (Public Inquiries):** [https://support-desk-crm-qs00.onrender.com/portal/inquiry](https://support-desk-crm-qs00.onrender.com/portal/inquiry)
+- **Ticket Tracking:** [https://support-desk-crm-qs00.onrender.com/portal/track](https://support-desk-crm-qs00.onrender.com/portal/track)
+- **User Profile:** [https://support-desk-crm-qs00.onrender.com/profile](https://support-desk-crm-qs00.onrender.com/profile)
+
+---
+
+### 🔐 Authentication & Admin Endpoints
+
+- **Login Page:** [https://support-desk-crm-qs00.onrender.com/login](https://support-desk-crm-qs00.onrender.com/login)
+- **Sign Up / Registration:** [https://support-desk-crm-qs00.onrender.com/signup](https://support-desk-crm-qs00.onrender.com/signup)
+- **Admin Dashboard:** [https://support-desk-crm-qs00.onrender.com/tickets/admin/dashboard](https://support-desk-crm-qs00.onrender.com/tickets/admin/dashboard)
+- **Admin Ticket Management:** [https://support-desk-crm-qs00.onrender.com/tickets/admin/all-tickets](https://support-desk-crm-qs00.onrender.com/tickets/admin/all-tickets)
+
+---
+
+### 🔑 Demo / Admin Credentials
+
+| Role | Username / Email | Password |
+|---|---|---|
+| **Admin** | `admin` *(or admin@example.com)* | `admin123` *(replace with your configured secret)* |
+| **Agent / User** | Self-register at `/signup` | Configured during signup |
+
 ## 📄 License
 
 This project is open-source and released under the [MIT License](https://www.google.com/search?q=LICENSE&utm_source=gemini).
