@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Operations Console | SupportDesk</title>
+    <!-- Blue Shield Tab Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230d6efd'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z'/%3E%3C/svg%3E">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -60,6 +61,39 @@
             padding: 0.85rem 1.15rem;
             border-bottom-color: #f1f5f9;
         }
+        .user-nav-chip {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.3rem 0.75rem 0.3rem 0.4rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .user-nav-chip:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+        .user-nav-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-nav-placeholder {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #0d6efd;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -75,13 +109,24 @@
                 <div class="text-muted small" style="font-size: 0.725rem;">Live Operations & Support Performance</div>
             </div>
         </div>
-        <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/admin/tickets}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+        <div class="d-flex align-items-center gap-2">
+            <a th:href="@{/tickets/admin/all-tickets}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm">
                 <i class="bi bi-card-checklist me-1"></i> View All Tickets
             </a>
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 small d-flex align-items-center gap-1">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 small d-none d-md-flex align-items-center gap-1">
                 <i class="bi bi-broadcast"></i> Live Sync Active
             </span>
+
+            <!-- Admin Profile Navigation Chip -->
+            <a href="/profile" class="user-nav-chip">
+                <img th:if="${currentUser != null and currentUser.avatarUrl != null}"
+                     th:src="${currentUser.avatarUrl}" class="user-nav-avatar" alt="Avatar">
+                <span th:if="${currentUser == null or currentUser.avatarUrl == null}" class="user-nav-placeholder">
+                    <i class="bi bi-person-fill"></i>
+                </span>
+                <span class="small fw-semibold" th:text="${currentUser != null ? currentUser.fullname : 'Admin'}">Admin</span>
+            </a>
+
             <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
                 <i class="bi bi-box-arrow-right me-1"></i> Logout
             </a>
@@ -203,7 +248,7 @@
                 <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-clock-history text-primary me-2"></i>Recent Operational Activity</h6>
                 <p class="text-muted small mb-0">Live stream of ticket claims and resolutions across all agents</p>
             </div>
-            <a th:href="@{/admin/tickets}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold">
+            <a th:href="@{/tickets/admin/all-tickets}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold">
                 Explore Inquiries <i class="bi bi-chevron-right ms-1"></i>
             </a>
         </div>
@@ -229,7 +274,7 @@
                         </span>
                     </td>
                     <td>
-                        <a th:href="@{'/admin/tickets/' + ${log.ticketId}}" class="fw-bold text-primary text-decoration-none font-monospace" th:text="${log.ticketId}">TKT-001</a>
+                        <a th:href="@{'/tickets/admin/' + ${log.ticketId}}" class="fw-bold text-primary text-decoration-none font-monospace" th:text="${log.ticketId}">TKT-001</a>
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
@@ -239,7 +284,7 @@
                     </td>
                     <td class="text-muted" th:text="${log.timestamp != null ? #temporals.format(log.timestamp, 'dd MMM yyyy, hh:mm:ss a') : 'Recently'}">Time</td>
                     <td class="text-end">
-                        <a th:href="@{'/admin/tickets/' + ${log.ticketId}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        <a th:href="@{'/tickets/admin/' + ${log.ticketId}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
                             Inspect <i class="bi bi-chevron-right"></i>
                         </a>
                     </td>
@@ -252,6 +297,21 @@
         </div>
     </div>
 </div>
+
+<!-- Interactive Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;" th:if="${toastMessage}">
+    <div id="liveToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2 py-3 px-3">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <span class="fw-medium small" th:text="${toastMessage}">Action completed successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
@@ -333,15 +393,12 @@
     if (window.EventSource) {
         try {
             const eventSource = new EventSource('/tickets/live-stream');
-
             const refreshTrigger = function() {
                 console.log('SSE notification received: reloading admin metrics...');
                 window.location.reload();
             };
-
             eventSource.onmessage = refreshTrigger;
             eventSource.addEventListener('TICKET_UPDATED', refreshTrigger);
-
             eventSource.onerror = function() {
                 console.warn('Live stream reconnecting in background...');
             };
@@ -350,6 +407,13 @@
         }
     }
     /*]]>*/
+</script>
+
+<script th:if="${toastMessage}">
+    document.addEventListener('DOMContentLoaded', () => {
+        const toastEl = document.getElementById('liveToast');
+        if (toastEl) new bootstrap.Toast(toastEl, { delay: 4000 }).show();
+    });
 </script>
 </body>
 </html>
